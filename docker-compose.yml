@@ -5,15 +5,14 @@ services:
       dockerfile: docker/web/Dockerfile
     restart: unless-stopped
     environment:
-      SERVICE_URL_WEB: /
       SERVICE_URL_WEB_80: /
 
       APP_NAME: ${APP_NAME:-Laravel}
       APP_ENV: ${APP_ENV:-production}
       APP_KEY: ${APP_KEY:?}
       APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: $SERVICE_URL_WEB
-      ASSET_URL: $SERVICE_URL_WEB
+      APP_URL: ${APP_URL:?}
+      ASSET_URL: ${APP_URL:?}
 
       LOG_CHANNEL: stderr
       LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -49,7 +48,7 @@ services:
       retries: 5
       start_period: 40s
 
-   worker:
+  worker:
     build:
       context: .
       dockerfile: docker/web/Dockerfile
@@ -60,7 +59,7 @@ services:
       APP_ENV: ${APP_ENV:-production}
       APP_KEY: ${APP_KEY:?}
       APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: $SERVICE_URL_WEB
+      APP_URL: ${APP_URL:?}
 
       LOG_CHANNEL: stderr
       LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -101,7 +100,7 @@ services:
       APP_ENV: ${APP_ENV:-production}
       APP_KEY: ${APP_KEY:?}
       APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: $SERVICE_URL_WEB
+      APP_URL: ${APP_URL:?}
 
       LOG_CHANNEL: stderr
       LOG_LEVEL: ${LOG_LEVEL:-info}
