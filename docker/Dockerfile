@@ -7,40 +7,41 @@ RUN if [ -f package.json ]; then npm ci; fi
 COPY . .
 RUN mkdir -p public/build && if [ -f package.json ]; then npm run build; fi
 
-FROM php:8.4-fpm-alpine
+FROM php:8.4-apache
 
 WORKDIR /var/www/html
 
-RUN apk add --no-cache \
-    bash \
-    curl \
+RUN apt-get update && apt-get install -y \
     git \
     unzip \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    icu-dev \
+    curl \
     libzip-dev \
-    oniguruma-dev \
-    postgresql-dev \
-    linux-headers \
-    $PHPIZE_DEPS \
-    nginx
-
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libicu-dev \
+    libonig-dev \
+    libpq-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
-        pdo \
-        pdo_pgsql \
-        pgsql \
-        bcmath \
-        exif \
-        gd \
-        intl \
-        opcache \
-        pcntl \
-        zip \
+       pdo \
+       pdo_pgsql \
+       pgsql \
+       bcmath \
+       exif \
+       gd \
+       intl \
+       pcntl \
+       zip \
+       opcache \
     && pecl install redis \
-    && docker-php-ext-enable redis
+    && docker-php-ext-enable redis \
+    && a2enmod rewrite headers \
+    && sed -ri -e 's!/var/www/html!/var/www/html/public!g' \
+       /etc/apache2/sites-available/*.conf \
+       /etc/apache2/apache2.conf \
+       /etc/apache2/conf-available/*.conf \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
@@ -59,8 +60,8 @@ RUN mkdir -p storage/framework/cache \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
-COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/web/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["php-fpm", "-F"]
+CMD ["apache2-foreground"]

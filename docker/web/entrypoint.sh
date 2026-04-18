@@ -7,11 +7,10 @@ mkdir -p storage/framework/cache \
          storage/framework/sessions \
          storage/framework/views \
          storage/logs \
-         bootstrap/cache \
-         public
+         bootstrap/cache
 
-chown -R www-data:www-data storage bootstrap/cache public || true
-chmod -R 775 storage bootstrap/cache public || true
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 775 storage bootstrap/cache || true
 
 php artisan storage:link || true
 

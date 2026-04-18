@@ -1,37 +1,19 @@
 services:
-nginx:
-  build:
-    context: ./docker/nginx
-    dockerfile: Dockerfile
-  restart: unless-stopped
-  depends_on:
-    app:
-      condition: service_started
-  environment:
-    SERVICE_URL_NGINX: /
-    SERVICE_URL_NGINX_80: /
-  volumes:
-    - laravel_storage:/var/www/html/storage
-    - laravel_public:/var/www/html/public
-  healthcheck:
-    test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
-    interval: 30s
-    timeout: 10s
-    retries: 5
-    start_period: 20s
-
-  app:
+  web:
     build:
       context: .
-      dockerfile: docker/php/Dockerfile
+      dockerfile: docker/web/Dockerfile
     restart: unless-stopped
     environment:
+      SERVICE_URL_WEB: /
+      SERVICE_URL_WEB_80: /
+
       APP_NAME: ${APP_NAME:-Laravel}
       APP_ENV: ${APP_ENV:-production}
       APP_KEY: ${APP_KEY:?}
       APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: $SERVICE_URL_NGINX
-      ASSET_URL: $SERVICE_URL_NGINX
+      APP_URL: $SERVICE_URL_WEB
+      ASSET_URL: $SERVICE_URL_WEB
 
       LOG_CHANNEL: stderr
       LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -60,12 +42,17 @@ nginx:
         condition: service_started
     volumes:
       - laravel_storage:/var/www/html/storage
-      - laravel_public:/var/www/html/public
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   worker:
     build:
       context: .
-      dockerfile: docker/php/Dockerfile
+      dockerfile: docker/web/Dockerfile
     restart: unless-stopped
     command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=120", "--max-time=3600"]
     environment:
@@ -73,7 +60,7 @@ nginx:
       APP_ENV: ${APP_ENV:-production}
       APP_KEY: ${APP_KEY:?}
       APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: $SERVICE_URL_NGINX
+      APP_URL: $SERVICE_URL_WEB
 
       LOG_CHANNEL: stderr
       LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -102,12 +89,11 @@ nginx:
         condition: service_started
     volumes:
       - laravel_storage:/var/www/html/storage
-      - laravel_public:/var/www/html/public
 
   scheduler:
     build:
       context: .
-      dockerfile: docker/php/Dockerfile
+      dockerfile: docker/web/Dockerfile
     restart: unless-stopped
     command: ["sh", "-c", "while true; do php artisan schedule:run --no-interaction -v; sleep 60; done"]
     environment:
@@ -115,7 +101,7 @@ nginx:
       APP_ENV: ${APP_ENV:-production}
       APP_KEY: ${APP_KEY:?}
       APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: $SERVICE_URL_NGINX
+      APP_URL: $SERVICE_URL_WEB
 
       LOG_CHANNEL: stderr
       LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -144,7 +130,6 @@ nginx:
         condition: service_started
     volumes:
       - laravel_storage:/var/www/html/storage
-      - laravel_public:/var/www/html/public
 
   db:
     image: postgres:17-alpine
@@ -185,6 +170,5 @@ nginx:
 
 volumes:
   laravel_storage:
-  laravel_public:
   postgres_data:
   redis_data:
