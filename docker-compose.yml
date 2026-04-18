@@ -91,45 +91,45 @@ services:
       - laravel_storage:/var/www/html/storage
 
   scheduler:
-    build:
-      context: .
-      dockerfile: docker/web/Dockerfile
-    restart: unless-stopped
-    command: ["sh", "-c", "while true; do php artisan schedule:run --no-interaction -v; sleep 60; done"]
-    environment:
-      APP_NAME: ${APP_NAME:-Laravel}
-      APP_ENV: ${APP_ENV:-production}
-      APP_KEY: ${APP_KEY:?}
-      APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: $SERVICE_URL_WEB
+  build:
+    context: .
+    dockerfile: docker/web/Dockerfile
+  restart: unless-stopped
+  command: ["sh", "-c", "while true; do php artisan schedule:run --no-interaction -v; sleep 60; done"]
+  environment:
+    APP_NAME: ${APP_NAME:-Laravel}
+    APP_ENV: ${APP_ENV:-production}
+    APP_KEY: ${APP_KEY:?}
+    APP_DEBUG: ${APP_DEBUG:-false}
+    APP_URL: $SERVICE_URL_WEB
 
-      LOG_CHANNEL: stderr
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+    LOG_CHANNEL: stderr
+    LOG_LEVEL: ${LOG_LEVEL:-info}
 
-      DB_CONNECTION: pgsql
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_DATABASE: ${DB_DATABASE:?laravel}
-      DB_USERNAME: ${DB_USERNAME:?laravel}
-      DB_PASSWORD: ${DB_PASSWORD:?}
+    DB_CONNECTION: pgsql
+    DB_HOST: db
+    DB_PORT: 5432
+    DB_DATABASE: ${DB_DATABASE:?laravel}
+    DB_USERNAME: ${DB_USERNAME:?laravel}
+    DB_PASSWORD: ${DB_PASSWORD:?}
 
-      REDIS_CLIENT: phpredis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+    REDIS_CLIENT: phpredis
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+    REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
 
-      CACHE_STORE: redis
-      SESSION_DRIVER: redis
-      QUEUE_CONNECTION: redis
+    CACHE_STORE: redis
+    SESSION_DRIVER: redis
+    QUEUE_CONNECTION: redis
 
-      RUN_MIGRATIONS: "false"
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    volumes:
-      - laravel_storage:/var/www/html/storage
+    RUN_MIGRATIONS: "false"
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+  volumes:
+    - laravel_storage:/var/www/html/storage
 
   db:
     image: postgres:17-alpine
